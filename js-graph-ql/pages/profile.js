@@ -53,8 +53,6 @@ export const createProfilePage = async () => {
             userInfo.appendChild(fullName);
         }
 
-        // Level feature has been removed
-
         // Add profile info
         const profileInfo = document.createElement('div');
         profileInfo.className = 'profile-info';

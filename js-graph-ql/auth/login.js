@@ -67,30 +67,27 @@ export const buildLoginForm = () => {
     loginButton.setAttribute('type', 'submit');
     loginButton.textContent = 'Sign In';
 
-    // Assemble the form
     loginForm.append(identifierField, passwordContainer, errorMessage, loginButton);
 
-    // Assemble the login container
     loginContainer.append(loginTitle, loginForm);
 
-    // Attach submission handler
     loginForm.addEventListener('submit', async (event) => {
         event.preventDefault();
         errorMessage.hidden = true;
 
         try {
-            console.log('Form submitted'); // Debug log
+            console.log('Form submitted');
 
             const identifier = identifierField.value;
             const password = passwordField.value;
 
-            console.log('Credentials prepared:', { identifier: identifier, hasPassword: !!password }); // Debug log
+            console.log('Credentials prepared:', { identifier: identifier, hasPassword: !!password });
 
             const credentials = `${identifier}:${password}`;
             const authHeader = `Basic ${btoa(credentials)}`;
             const apiUrl = 'https://learn.reboot01.com/api/auth/signin';
 
-            console.log('Making fetch request to:', apiUrl); // Debug log
+            console.log('Making fetch request to:', apiUrl);
 
             const response = await fetch(apiUrl, {
                 method: 'POST',
@@ -105,19 +102,19 @@ export const buildLoginForm = () => {
                 status: response.status,
                 statusText: response.statusText,
                 headers: [...response.headers.entries()]
-            }); // Debug log
+            });
 
             if (!response.ok) {
                 throw new Error(`username or password incorrect.`);
             }
 
-            const responseText = await response.text(); // Get response as text first
-            console.log('Raw response:', responseText); // Debug log
+            const responseText = await response.text(); 
+            console.log('Raw response:', responseText); 
 
             let responseData;
             try {
                 responseData = JSON.parse(responseText);
-                console.log('Parsed response data:', responseData); // Debug log
+                console.log('Parsed response data:', responseData);
             } catch (e) {
                 console.log('Response is not JSON, using as raw token');
                 responseData = responseText;
@@ -127,21 +124,20 @@ export const buildLoginForm = () => {
                 throw new Error('No response data received');
             }
 
-            // Store the token
             let token;
             if (typeof responseData === 'string') {
                 token = responseData;
-                localStorage.setItem('jwt_token', token);
+                storeToken(token);
                 console.log('Stored raw token');
             } else if (responseData.token) {
                 token = responseData.token;
-                localStorage.setItem('jwt_token', token);
+                storeToken(token);
                 console.log('Stored token from object');
             } else {
                 throw new Error('Invalid token format received');
             }
+            console.log('Token stored successfully:', token);
 
-            // Immediately fetch the user ID after login
             try {
                 const userIdResponse = await fetch('https://learn.reboot01.com/api/graphql-engine/v1/graphql', {
                     method: 'POST',
@@ -167,15 +163,12 @@ export const buildLoginForm = () => {
                 }
             } catch (idError) {
                 console.warn('Error fetching user ID after login:', idError);
-                // Continue with login process even if this fails
             }
 
-            console.log('Login successful, redirecting...'); // Debug log
+            console.log('Login successful, redirecting...');
 
-            // Store a flag to indicate we need to fetch level data on initial load
             localStorage.setItem('fetch_level_data', 'true');
 
-            // Clear the logged_out flag if it exists
             sessionStorage.removeItem('logged_out');
 
             window.location.href = '/';
@@ -190,5 +183,4 @@ export const buildLoginForm = () => {
     return loginContainer;
 };
 
-// Export the function to be used in main.js
 export const createLoginForm = buildLoginForm;
